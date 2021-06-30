@@ -11,14 +11,12 @@ near_sdk::setup_alloc!();
 pub struct StatusMessage {
     //lookupMap cannot be repeated, allocates same memory space
     records: LookupMap<String, String>,
-    date: LookupMap<String, String>,
 }
 
 impl Default for StatusMessage {
     fn default() -> Self {
         Self {
             records: LookupMap::new(b"r".to_vec()),
-            date: LookupMap::new(b"r".to_vec()),
         }
     }
 }
@@ -36,11 +34,11 @@ impl StatusMessage {
 
     pub fn set_date(&mut self, date: String) {
         let account_id = env::signer_account_id();
-        self.date.insert(&account_id, &date);
+        self.records.insert(&account_id, &date);
     }
 
     pub fn get_date(&self, account_id: String) -> Option<String> {
-        return self.date.get(&account_id);
+        return self.records.get(&account_id);
     }
 /*
     pub fn get_all_dates(&self, account_id: String) -> Option<String> {
