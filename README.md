@@ -14,6 +14,8 @@ Is
 
 **Note**: If permissions required write the following
 ```bash
+near dev-deploy --wasmFile res/ncd_playground.wasm
+```bash 
 chmod +x ./build.sh
 ```
 
