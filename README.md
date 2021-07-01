@@ -12,7 +12,10 @@ Is
 run ./build.sh
 ```
 
-**Note**: If permissions required write the following
+**Note**: If permissions required write the following  
+```bash 
+rustup target add wasm32-unknown-unknown
+
 ```bash
 chmod +x ./build.sh
 ```
