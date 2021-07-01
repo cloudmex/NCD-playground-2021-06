@@ -2,7 +2,11 @@
 //New info is being saved in the contract
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::LookupMap;
-use near_sdk::{env, near_bindgen};
+use near_sdk::json_types::{Base58PublicKey, U128};
+use near_sdk::{
+    env, ext_contract, near_bindgen, AccountId, Balance, EpochHeight, Promise, PromiseResult,
+    PublicKey,
+};
 
 near_sdk::setup_alloc!();
 
@@ -23,6 +27,7 @@ impl Default for StatusMessage {
 
 #[near_bindgen]
 impl StatusMessage {
+    #[payable]
     pub fn set_status(&mut self, message: String) {
         let account_id = env::signer_account_id();
         self.records.insert(&account_id, &message);
@@ -32,6 +37,12 @@ impl StatusMessage {
         return self.records.get(&account_id);
     }
 
+    pub fn withdraw(&mut self,account_id: String, amount: u128) {
+
+        Promise::new(account_id).transfer(10);
+
+    }
+/*
     pub fn set_date(&mut self, date: String) {
         let account_id = env::signer_account_id();
         self.records.insert(&account_id, &date);
@@ -40,7 +51,7 @@ impl StatusMessage {
     pub fn get_date(&self, account_id: String) -> Option<String> {
         return self.records.get(&account_id);
     }
-/*
+
     pub fn get_all_dates(&self, account_id: String) -> Option<String> {
         return self.date.get(&account_id);
     }

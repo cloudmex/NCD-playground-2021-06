@@ -9,7 +9,7 @@ If you are running Windows ~~please change to UNIX~~, use something as WSL for c
 # How to run the smart contract
 Is 
 ```bash
-run ./build.sh
+./build.sh
 ```
 
 **Note**: If permissions required write the following
