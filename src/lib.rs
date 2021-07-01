@@ -12,24 +12,44 @@ near_sdk::setup_alloc!();
 
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize)]
-pub struct StatusMessage {
-    //lookupMap cannot be repeated, allocates same memory space
+pub struct ColdChain {
+    //Information to be saved Truck ID, Temp (ºF and ºC), Truck plate, Fuel liters, Current Location, timestamp
     records: LookupMap<String, String>,
+    truck_id: LookupMap<String, String>,
+    temp_f: LookupMap<String, String>,
+    temp_c: LookupMap<String, String>,
+    truck_plate: LookupMap<String, String>,
+    fuel: LookupMap<String, String>,
+    location: LookupMap<String, String>,
+    date: LookupMap<String, String>,
+    // i8 is signed. unsigned integers are also available: u8, u16, u32, u64, u128
+    val: i8, 
 }
 
-impl Default for StatusMessage {
+impl Default for ColdChain {
     fn default() -> Self {
         Self {
             records: LookupMap::new(b"r".to_vec()),
+            truck_id: LookupMap::new(b"t_f".to_vec()),
+            temp_f: LookupMap::new(b"t_f".to_vec()),
+            temp_c: LookupMap::new(b"t_c".to_vec()),
+            truck_plate: LookupMap::new(b"t_p".to_vec()),
+            fuel: LookupMap::new(b"f".to_vec()),
+            location: LookupMap::new(b"l".to_vec()),
+            date: LookupMap::new(b"d".to_vec()),
+            val: 125,
         }
     }
 }
 
 #[near_bindgen]
-impl StatusMessage {
+impl ColdChain {
     #[payable]
     pub fn set_status(&mut self, message: String) {
         let account_id = env::signer_account_id();
+
+        let log_message = format!("New status {}", &message);
+        env::log(log_message.as_bytes());
         self.records.insert(&account_id, &message);
     }
 
@@ -37,10 +57,79 @@ impl StatusMessage {
         return self.records.get(&account_id);
     }
 
-    pub fn withdraw(&mut self,account_id: String, amount: u128) {
+    pub fn set_date(&mut self, date: String) {
+        let account_id = env::signer_account_id();
+        self.date.insert(&account_id, &date);
+    }
 
-        Promise::new(account_id).transfer(10);
+    pub fn get_date(&self, account_id: String) -> Option<String> {
+        return self.date.get(&account_id);
+    }
 
+    pub fn get_balance(&self) -> Option<Balance> {
+        return Some(env::account_balance());
+    }
+
+    pub fn withdraw(&mut self,account_id: AccountId, amount: u128) {
+        let log_account = format!("Account ID {}", &account_id);
+        env::log(log_account.as_bytes());
+
+        let log_amount = format!("Amount {}", &amount);
+        env::log(log_amount.as_bytes());
+        Promise::new(account_id).transfer(amount);
+
+    }
+
+
+    ///START COUNTING METHODS
+    pub fn get_num(&self) -> i8 {
+        return self.val;
+    }
+
+    /// Increment the counter.
+    ///
+    /// Note, the parameter is "&mut self" as this function modifies state.
+    /// In the frontend (/src/main.js) this is added to the "changeMethods" array
+    /// using near-cli we can call this by:
+    ///
+    /// ```bash
+    /// near call counter.YOU.testnet increment --accountId donation.YOU.testnet
+    /// ```
+    pub fn increment(&mut self) {
+        // note: adding one like this is an easy way to accidentally overflow
+        // real smart contracts will want to have safety checks
+        // e.g. self.val = i8::wrapping_add(self.val, 1);
+        // https://doc.rust-lang.org/std/primitive.i8.html#method.wrapping_add
+        self.val += 1;
+        let log_message = format!("Increased number to {}", self.val);
+        env::log(log_message.as_bytes());
+        after_counter_change();
+    }
+
+    /// Decrement (subtract from) the counter.
+    ///
+    /// In (/src/main.js) this is also added to the "changeMethods" array
+    /// using near-cli we can call this by:
+    ///
+    /// ```bash
+    /// near call counter.YOU.testnet decrement --accountId donation.YOU.testnet
+    /// ```
+    pub fn decrement(&mut self) {
+        // note: subtracting one like this is an easy way to accidentally overflow
+        // real smart contracts will want to have safety checks
+        // e.g. self.val = i8::wrapping_sub(self.val, 1);
+        // https://doc.rust-lang.org/std/primitive.i8.html#method.wrapping_sub
+        self.val -= 1;
+        let log_message = format!("Decreased number to {}", self.val);
+        env::log(log_message.as_bytes());
+        after_counter_change();
+    }
+
+    /// Reset to zero.
+    pub fn reset(&mut self) {
+        self.val = 0;
+        // Another way to log is to cast a string into bytes, hence "b" below:
+        env::log(b"Reset counter to zero");
     }
 /*
     pub fn set_date(&mut self, date: String) {
@@ -90,7 +179,7 @@ mod tests {
     fn set_get_message() {
         let context = get_context(vec![], false);
         testing_env!(context);
-        let mut contract = StatusMessage::default();
+        let mut contract = ColdChain::default();
         contract.set_status("hello".to_string());
         assert_eq!(
             "hello".to_string(),
@@ -102,7 +191,15 @@ mod tests {
     fn get_nonexistent_message() {
         let context = get_context(vec![], true);
         testing_env!(context);
-        let contract = StatusMessage::default();
+        let contract = ColdChain::default();
         assert_eq!(None, contract.get_status("francis.near".to_string()));
     }
+}
+
+// unlike the struct's functions above, this function cannot use attributes #[derive(…)] or #[near_bindgen]
+// any attempts will throw helpful warnings upon 'cargo build'
+// while this function cannot be invoked directly on the blockchain, it can be called from an invoked function
+fn after_counter_change() {
+    // show helpful warning that i8 (8-bit signed integer) will overflow above 127 or below -128
+    env::log("Make sure you don't overflow, my friend.".as_bytes());
 }

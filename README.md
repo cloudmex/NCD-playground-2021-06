@@ -18,6 +18,23 @@ near dev-deploy --wasmFile res/ncd_playground.wasm
 ```bash 
 chmod +x ./build.sh
 ```
+# Midnight notes for ideation
+## Cold chain tracking
+Imagine you are a truck driver with a cold chain refrigator... 
+-A truck visit distinct cities across Mexico delivering COVID-19 vaccines with ultra frozens refrigerators
+-In each city the truck have to leave information about Truck ID, Temp (ºF and ºC), Truck plate, Fuel liters, Current Location, timestamp
+-When the truck arrives the last destionation (city), the truck driver can withdraw the payment.
+-If the Temp goes out of range the payment is canceled and returned to smart contract.
+-To start a new contract you need to pay the truck owner when you return to the origin
+
+## Locations 
+-Tepic, Nayarit (Origin)
+-Guadalajara, Jalisco
+-Aguascalientes, Aguascalientes
+-Leon, Guanajuato
+-Ciudad de México (Destiny)
+
+
 
 # Deploy the smart contract inside the testnet
 ```bash
