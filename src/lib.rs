@@ -2,10 +2,11 @@
 //New info is being saved in the contract
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::LookupMap;
+use near_sdk::collections::Vector;
 use near_sdk::json_types::{Base58PublicKey, U128};
 use near_sdk::{
     env, ext_contract, near_bindgen, AccountId, Balance, EpochHeight, Promise, PromiseResult,
-    PublicKey,
+    PublicKey, 
 };
 
 near_sdk::setup_alloc!();
@@ -23,7 +24,7 @@ pub struct ColdChain {
     location: LookupMap<String, String>,
     date: LookupMap<String, String>,
     // i8 is signed. unsigned integers are also available: u8, u16, u32, u64, u128
-    val: i8, 
+    val: u8, 
 }
 
 impl Default for ColdChain {
@@ -37,13 +38,76 @@ impl Default for ColdChain {
             fuel: LookupMap::new(b"f".to_vec()),
             location: LookupMap::new(b"l".to_vec()),
             date: LookupMap::new(b"d".to_vec()),
-            val: 125,
+            val: 0,
         }
     }
 }
 
 #[near_bindgen]
 impl ColdChain {
+
+    #[payable] //You pay for renting a truck 
+    pub fn rent_truck(&mut self, message: String ){
+        let amount = env::attached_deposit();
+        assert_eq!(
+            amount, //Current location
+             //10 NEARs required for renting a truck
+            10000000000000000000000000, //How can this number by smaller? something as nears_2_yocto() and yocto_2_nears()
+            "Payment for rent truck"
+        );
+
+        assert_eq!(
+            self.val, //Current location
+            0,
+            "Truck needs to be in origin"
+        );
+        let account_id = env::signer_account_id();
+        self.records.insert(&account_id, &message);
+    }
+
+    pub fn new_arrival(&mut self, message: String ){
+        assert!(
+            self.val < 4, //Current location vs Destiny location
+            "Truck come to it's last destiny"
+        );
+        self.increment();
+        let account_id = env::signer_account_id();
+        self.records.insert(&account_id, &message);
+    }
+
+
+    fn increment(&mut self) {
+        // note: adding one like this is an easy way to accidentally overflow
+        // real smart contracts will want to have safety checks
+        // e.g. self.val = i8::wrapping_add(self.val, 1);
+        // https://doc.rust-lang.org/std/primitive.i8.html#method.wrapping_add
+        self.val += 1;
+        let log_message = format!("Increased location to {}", self.val);
+        env::log(log_message.as_bytes());
+        after_counter_change();
+    }
+
+
+    pub fn get_location(&self) -> u8 {
+        return self.val;
+    }
+
+    /*pub fn get_location_verbose(&self) -> Option<String>  {
+        /*0-Tepic, Nayarit (Origin)
+        1-Guadalajara, Jalisco
+        2-Aguascalientes, Aguascalientes
+        3-Leon, Guanajuato
+        4-Ciudad de México (Destiny)*/
+        match self.val {
+            // Match a single value
+            0 => env::log(b"Tepic"),
+            1 => env::log(b"Reset counter to zero"),
+            2 => env::log(b"Reset counter to zero"),
+            3 => env::log(b"Reset counter to zero"),
+            4 => env::log(b"Reset counter to zero"),
+        }
+    }*/
+
     #[payable]
     pub fn set_status(&mut self, message: String) {
         let account_id = env::signer_account_id();
@@ -82,9 +146,6 @@ impl ColdChain {
 
 
     ///START COUNTING METHODS
-    pub fn get_num(&self) -> i8 {
-        return self.val;
-    }
 
     /// Increment the counter.
     ///
@@ -95,16 +156,7 @@ impl ColdChain {
     /// ```bash
     /// near call counter.YOU.testnet increment --accountId donation.YOU.testnet
     /// ```
-    pub fn increment(&mut self) {
-        // note: adding one like this is an easy way to accidentally overflow
-        // real smart contracts will want to have safety checks
-        // e.g. self.val = i8::wrapping_add(self.val, 1);
-        // https://doc.rust-lang.org/std/primitive.i8.html#method.wrapping_add
-        self.val += 1;
-        let log_message = format!("Increased number to {}", self.val);
-        env::log(log_message.as_bytes());
-        after_counter_change();
-    }
+
 
     /// Decrement (subtract from) the counter.
     ///

@@ -28,11 +28,11 @@ Imagine you are a truck driver with a cold chain refrigator...
 -To start a new contract you need to pay the truck owner when you return to the origin
 
 ## Locations 
--Tepic, Nayarit (Origin)
--Guadalajara, Jalisco
--Aguascalientes, Aguascalientes
--Leon, Guanajuato
--Ciudad de México (Destiny)
+0-Tepic, Nayarit (Origin)
+1-Guadalajara, Jalisco
+2-Aguascalientes, Aguascalientes
+3-Leon, Guanajuato
+4-Ciudad de México (Destiny)
 
 
 
@@ -41,16 +41,30 @@ Imagine you are a truck driver with a cold chain refrigator...
 near dev-deploy --wasmFile res/ncd_playground.wasm
 ```
 
+**Note** It can be required to delete this files to run correctly the SC
 ```bash
 source neardev/dev-account.env 
 ```
+
 
 ```bash
 echo $CONTRACT_NAME
 ```
 
 ```bash
-near call $CONTRACT_NAME set_status '{"message": "aloha!"}' --accountId $CONTRACT_NAME
+near call $CONTRACT_NAME set_status '{"message": "aloha!"}' --accountId $MY_ACCOUNT
+```
+
+```bash
+near call $CONTRACT_NAME rent_truck '{"message": "new truck created"}' --accountId $MY_ACCOUNT--amount 10
+```
+
+```bash
+near call $CONTRACT_NAME new_arrival '{"message": "new arrival at Guadalajara"}' --accountId $MY_ACCOUNT
+```
+
+```bash
+near call $CONTRACT_NAME decrement --accountId $CONTRACT_NAME    
 ```
 # Testing the contract
 
