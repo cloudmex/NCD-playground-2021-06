@@ -25,16 +25,16 @@ near dev-deploy --wasmFile res/ncd_playground.wasm
 # Cold chain tracking
 Imagine you are a want to send a cold chain package.
 
--Pay 10 NEAR for a new delivery for starting it, select the account to pay when the delivery is done.
--Record temperature in each arrival to a new location.
--Once the delivery is in the last location, withdraw 10 NEAR as payment for completing succesfully the delivery.
--Restart the cycle.
+- Pay 10 NEAR for a new delivery for starting it, select the account to pay when the delivery is done.
+- Record temperature in each arrival to a new location.
+- Once the delivery is in the last location, withdraw 10 NEAR as payment for completing succesfully the delivery.
+- Restart the cycle.
 
 Also you can:
--Check the status of the contract if it is initialized.
--.
--If the Temp goes out of range the payment is canceled and returned to smart contract.
--To start a new contract you need to pay the truck owner when you return to the origin
+- Check the status of the contract if it is initialized.
+- Get extra information of delivery (Truck plate, trucker name, temperature in ºF, fuel level, etc.)
+- If the Temp goes out of range the payment is canceled and returned to smart contract.
+- To start a new contract you need to pay the truck owner when you return to the origin
 
 ## Locations (Simulated)
 - 0 Tepic, Nayarit (Origin)
@@ -59,7 +59,7 @@ echo $CONTRACT_NAME
 ```
 Define your account inside your environment
 ```bash
-export $MY_ACCOUNT='mytest.testnet'
+export MY_ACCOUNT='mytest.testnet'
 echo $MY_ACCOUNT
 ```
 # Commands in the smar contract
@@ -114,6 +114,9 @@ cargo test
 ```
 # Wireframing
 Figma link: https://www.figma.com/file/w4YSyB4ML1wtcSy6IueL9j/Cold-chain-Wireframe?node-id=1392%3A1130
+
+# Loom video
+Video demo: https://www.loom.com/share/7ef30fb4deaf4088aad42600992dff97
 
 # What to do next? Some ideas for improving the code
 In this ideation section, we give some items that could improve the code, but time in NCD bootcamp was not enough to do that.
