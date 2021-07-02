@@ -1,3 +1,5 @@
+mod test;
+
 //New info is being saved in the contract
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::LookupMap;
