@@ -18,7 +18,7 @@ pub struct ColdChain {
     records: LookupMap<String, String>,
     truck_id: LookupMap<String, String>,
     temp_f: LookupMap<String, String>,
-    temp_c: LookupMap<String, String>,
+    temp_c: LookupMap<String, f32>,
     truck_plate: LookupMap<String, String>,
     fuel: LookupMap<String, String>,
     location: LookupMap<String, String>,
@@ -46,12 +46,32 @@ impl Default for ColdChain {
 #[near_bindgen]
 impl ColdChain {
 
-    #[payable] //You pay for renting a truck 
-    pub fn rent_truck(&mut self, message: String ){
+    #[payable] //You pay for a delivery
+    pub fn new_delivery(&mut self, temp_c: f32 ){
         let amount = env::attached_deposit();
+        //the id of who is calling the contract
+        let signer_account_id = env::signer_account_id();
+        let log_signer_account_id = format!("Signer Account ID {}", &signer_account_id );
+        env::log(log_signer_account_id.as_bytes());
+
+        // The id of the account that was the previous contract in the chain of cross-contract calls.
+        let predecessor_account_id = env::predecessor_account_id();
+        let log_predecessor_account_id = format!("Predecessor Account ID {}", &predecessor_account_id );
+        env::log(log_predecessor_account_id.as_bytes());
+        
+        // The id of the account that owns the current contract.
+        let current_account_id = env::current_account_id(); 
+        let log_current_account_id = format!("Current Account ID {}", &current_account_id );
+        env::log(log_current_account_id.as_bytes());
+
+        assert_ne!(
+            signer_account_id, 
+            current_account_id, 
+            "Contract cannot initialize a delivery by it's self"
+        );
         assert_eq!(
-            amount, //Current location
-             //10 NEARs required for renting a truck
+            amount, 
+             //10 NEARs required for delivery
             10000000000000000000000000, //How can this number by smaller? something as nears_2_yocto() and yocto_2_nears()
             "Payment for rent truck"
         );
@@ -59,20 +79,19 @@ impl ColdChain {
         assert_eq!(
             self.val, //Current location
             0,
-            "Truck needs to be in origin"
+            "Delivery needs to be in origin"
         );
-        let account_id = env::signer_account_id();
-        self.records.insert(&account_id, &message);
+        self.temp_c.insert(&current_account_id, &temp_c);
     }
 
-    pub fn new_arrival(&mut self, message: String ){
+    pub fn new_arrival(&mut self, temp_c: f32 ){
         assert!(
             self.val < 4, //Current location vs Destiny location
-            "Truck come to it's last destiny"
+            "Truck come to it's last destiny, "
         );
         self.increment();
         let account_id = env::signer_account_id();
-        self.records.insert(&account_id, &message);
+        self.temp_c.insert(&account_id, &temp_c);
     }
 
 
@@ -82,7 +101,7 @@ impl ColdChain {
         // e.g. self.val = i8::wrapping_add(self.val, 1);
         // https://doc.rust-lang.org/std/primitive.i8.html#method.wrapping_add
         self.val += 1;
-        let log_message = format!("Increased location to {}", self.val);
+        let log_message = format!("Current location {}", self.val);
         env::log(log_message.as_bytes());
         after_counter_change();
     }
@@ -92,7 +111,55 @@ impl ColdChain {
         return self.val;
     }
 
-    /*pub fn get_location_verbose(&self) -> Option<String>  {
+
+    pub fn withdraw(&mut self) {
+    
+         
+        assert_eq!(
+            self.val, //Current location
+            4,
+            "Truck needs to be in final destiny"
+        );
+        let signer_account_id = env::signer_account_id();
+        let current_account_id = env::current_account_id(); 
+
+
+        assert_ne!(
+            signer_account_id, 
+            current_account_id, 
+            "Contract cannot initialize a delivery by it's self"
+        );
+        /*
+       assert!(
+            amount > self.get_balance(), //Current location vs Destiny location
+            "Not enough payment for the contract"
+        );
+        */
+        let account_id = env::signer_account_id();
+        //let account_id = env::current_account_id();
+        let amount = env::account_balance();
+        let log_account = format!("Account ID {}", &account_id);
+        env::log(log_account.as_bytes());
+
+        let log_amount = format!("Amount {}", &amount);
+        env::log(log_amount.as_bytes());
+        self.reset();
+        let amount_payment: Balance = 10000000000000000000000000;
+        Promise::new(account_id).transfer(amount_payment);
+
+    }
+    //Verify how much balance is in the contract
+    pub fn get_balance(&self) -> Option<Balance> {
+        return Some(env::account_balance());
+    }
+
+    pub fn get_temp_c(&self, account_id: String) -> Option<f32> {
+        return self.temp_c.get(&account_id);
+    }
+    /*
+    Not really functional to be inside the smart contract
+    It will consume gas for doing a senseless reading
+    pub fn get_location_verbose(&self) -> Option<String>  {
         /*0-Tepic, Nayarit (Origin)
         1-Guadalajara, Jalisco
         2-Aguascalientes, Aguascalientes
@@ -106,8 +173,8 @@ impl ColdChain {
             3 => env::log(b"Reset counter to zero"),
             4 => env::log(b"Reset counter to zero"),
         }
-    }*/
-
+    }
+    
     #[payable]
     pub fn set_status(&mut self, message: String) {
         let account_id = env::signer_account_id();
@@ -120,7 +187,6 @@ impl ColdChain {
     pub fn get_status(&self, account_id: String) -> Option<String> {
         return self.records.get(&account_id);
     }
-
     pub fn set_date(&mut self, date: String) {
         let account_id = env::signer_account_id();
         self.date.insert(&account_id, &date);
@@ -129,21 +195,7 @@ impl ColdChain {
     pub fn get_date(&self, account_id: String) -> Option<String> {
         return self.date.get(&account_id);
     }
-
-    pub fn get_balance(&self) -> Option<Balance> {
-        return Some(env::account_balance());
-    }
-
-    pub fn withdraw(&mut self,account_id: AccountId, amount: u128) {
-        let log_account = format!("Account ID {}", &account_id);
-        env::log(log_account.as_bytes());
-
-        let log_amount = format!("Amount {}", &amount);
-        env::log(log_amount.as_bytes());
-        Promise::new(account_id).transfer(amount);
-
-    }
-
+*/
 
     ///START COUNTING METHODS
 

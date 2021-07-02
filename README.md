@@ -62,7 +62,8 @@ near call $CONTRACT_NAME rent_truck '{"message": "new truck created"}' --account
 ```bash
 near call $CONTRACT_NAME new_arrival '{"message": "new arrival at Guadalajara"}' --accountId $MY_ACCOUNT
 ```
-
+near call $CONTRACT_NAME new_delivery '{"message": "New delivery"}' --accountId 'alantest.testnet' --amount 10
+near call $CONTRACT_NAME withdraw --accountId 'alantest.testnet'
 ```bash
 near call $CONTRACT_NAME decrement --accountId $CONTRACT_NAME    
 ```
