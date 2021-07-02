@@ -1,10 +1,10 @@
-# NCD-playground-2021-06
-This is a playground done for the NCD bootcamp on june 2021. ~~Maybe in comming commits will have a proposal.~~ The project is now a cold chain deliveries tracker.
+# Cold chain smart contract
+The purpose of this smart contract is for a cold chain deliveries tracker. It's completely developed in RUST.
 
 # Considerations
 This is a project done in a UNIX-based system, as linux or MacOS.
 
-If you are running Windows ~~please change to UNIX~~, use something as WLS for command terminal.
+If you are running Windows consider to install WSL for command terminal.
 
 # How to run the smart contract
 First is required to compile the smart contract into binaries 
