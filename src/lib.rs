@@ -236,13 +236,14 @@ mod tests {
             epoch_height: 0,
         }
     }
-
+    
+    
     #[test]
     fn test_new_delivery() {
         let context = get_context(vec![], false);
         testing_env!(context);
         let contract = ColdChain::default();
-        assert_eq!(None, contract.new_delivery("francis.near".to_string()));
+        assert!(contract.new_delivery('{"temp_c": -4.0, "payment_account_id": "alan1.testnet"}'));
     }
     /*
     #[test]
