@@ -238,6 +238,14 @@ mod tests {
     }
 
     #[test]
+    fn test_new_delivery() {
+        let context = get_context(vec![], false);
+        testing_env!(context);
+        let contract = ColdChain::default();
+        assert_eq!(None, contract.new_delivery("francis.near".to_string()));
+    }
+    /*
+    #[test]
     fn set_get_message() {
         let context = get_context(vec![], false);
         testing_env!(context);
@@ -256,6 +264,7 @@ mod tests {
         let contract = ColdChain::default();
         assert_eq!(None, contract.get_status("francis.near".to_string()));
     }
+    */
 }
 
 // unlike the struct's functions above, this function cannot use attributes #[derive(…)] or #[near_bindgen]
