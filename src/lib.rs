@@ -1,5 +1,3 @@
-mod test;
-
 //New info is being saved in the contract
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::LookupMap;
@@ -240,34 +238,47 @@ mod tests {
     }
     
     
-    #[test]
+   /* #[test]
     fn test_new_delivery() {
         let context = get_context(vec![], false);
         testing_env!(context);
         let contract = ColdChain::default();
         assert!(contract.new_delivery('{"temp_c": -4.0, "payment_account_id": "alan1.testnet"}'));
     }
-    /*
+
+    */
     #[test]
-    fn set_get_message() {
+    fn test_get_initialized(){
         let context = get_context(vec![], false);
         testing_env!(context);
-        let mut contract = ColdChain::default();
-        contract.set_status("hello".to_string());
-        assert_eq!(
-            "hello".to_string(),
-            contract.get_status("bob_near".to_string()).unwrap()
-        );
+        let contract = ColdChain::default();
+        assert_eq!(false,contract.get_initialized());
     }
 
     #[test]
-    fn get_nonexistent_message() {
-        let context = get_context(vec![], true);
+    fn test_new_delivery(){
+        let context = get_context(vec![], false);
         testing_env!(context);
         let contract = ColdChain::default();
-        assert_eq!(None, contract.get_status("francis.near".to_string()));
+        assert_eq!(false,contract.new_delivery());
     }
-    */
+
+    #[test]
+    fn test_new_arrival(){
+        let context = get_context(vec![], false);
+        testing_env!(context);
+        let contract = ColdChain::default();
+        assert_eq!(false,contract.new_arrival());
+    }
+
+    #[test]
+    fn test_withdraw(){
+        let context = get_context(vec![], false);
+        testing_env!(context);
+        let contract = ColdChain::default();
+        assert_eq!(false,contract.withdraw());
+    }
+
 }
 
 // unlike the struct's functions above, this function cannot use attributes #[derive(…)] or #[near_bindgen]

@@ -1,5 +1,5 @@
 # NCD-playground-2021-06
-This is a playground done for the NCD bootcamp on june 2021. Maybe in comming commits will have a proposal.
+This is a playground done for the NCD bootcamp on june 2021. ~~Maybe in comming commits will have a proposal.~~ The project is now a cold chain deliveries tracker.
 
 # Considerations
 This is a project done in a UNIX-based system, as linux or MacOS.
@@ -37,11 +37,11 @@ Also you can:
 -To start a new contract you need to pay the truck owner when you return to the origin
 
 ## Locations (Simulated)
-0-Tepic, Nayarit (Origin)
-1-Guadalajara, Jalisco
-2-Aguascalientes, Aguascalientes
-3-Leon, Guanajuato
-4-Ciudad de México (Destiny)
+- 0 Tepic, Nayarit (Origin)
+- 1 Guadalajara, Jalisco
+- 2 Aguascalientes, Aguascalientes
+- 3 Leon, Guanajuato
+- 4 Ciudad de México (Destiny)
 
 **Note**: We had de idea to do a get_location_verbose about this in the smart contract but we think was senseless and we could do that in frontend.
 
@@ -113,6 +113,14 @@ Use cargo for running tests inside the contract
 cargo test 
 ```
 # Wireframing
+Figma link: https://www.figma.com/file/w4YSyB4ML1wtcSy6IueL9j/Cold-chain-Wireframe?node-id=1392%3A1130
+
+# What to do next? Some ideas for improving the code
+In this ideation section, we give some items that could improve the code, but time in NCD bootcamp was not enough to do that.
+* Add extra information about the delivery to be tracked (Truck plate, Driver ID, fuel level, etc.)
+* Have multiple deliveries running at the same time in the smart contract.
+* Define custom payment amount for delivery.
+* Define a safe range for temperature, if it is out of range return the money.
 
 # Credits
 This projects recovers ideas from many repositories, a list of those i remember.
