@@ -1,4 +1,3 @@
-//Based in https://github.com/near-examples/rust-status-message
 //New info is being saved in the contract
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::LookupMap;
@@ -15,14 +14,9 @@ near_sdk::setup_alloc!();
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct ColdChain {
     //Information to be saved Truck ID, Temp (ºF and ºC), Truck plate, Fuel liters, Current Location, timestamp
-    records: LookupMap<String, String>,
-    truck_id: LookupMap<String, String>,
-    temp_f: LookupMap<String, String>,
     temp_c: LookupMap<String, f32>,
-    truck_plate: LookupMap<String, String>,
-    fuel: LookupMap<String, String>,
-    location: LookupMap<String, String>,
-    date: LookupMap<String, String>,
+    payment_account_id: String,
+    initialized: bool,
     // i8 is signed. unsigned integers are also available: u8, u16, u32, u64, u128
     val: u8, 
 }
@@ -30,24 +24,25 @@ pub struct ColdChain {
 impl Default for ColdChain {
     fn default() -> Self {
         Self {
-            records: LookupMap::new(b"r".to_vec()),
-            truck_id: LookupMap::new(b"t_f".to_vec()),
-            temp_f: LookupMap::new(b"t_f".to_vec()),
             temp_c: LookupMap::new(b"t_c".to_vec()),
-            truck_plate: LookupMap::new(b"t_p".to_vec()),
-            fuel: LookupMap::new(b"f".to_vec()),
-            location: LookupMap::new(b"l".to_vec()),
-            date: LookupMap::new(b"d".to_vec()),
+            payment_account_id: env::current_account_id(),
+            initialized: false,
             val: 0,
         }
     }
 }
 
+
 #[near_bindgen]
 impl ColdChain {
 
-    #[payable] //You pay for a delivery
-    pub fn new_delivery(&mut self, temp_c: f32 ){
+    #[payable] //You pay 10 NEARS for a delivery
+    pub fn new_delivery(&mut self, temp_c: f32, payment_account_id: String){
+
+        assert!(
+            !self.initialized, //check that contract is not initialized
+            "Contract is alredy initialized, finish the travel to "
+        );
         let amount = env::attached_deposit();
         //the id of who is calling the contract
         let signer_account_id = env::signer_account_id();
@@ -81,13 +76,32 @@ impl ColdChain {
             0,
             "Delivery needs to be in origin"
         );
+        self.payment_account_id = payment_account_id;
+        self.initialized = true;
         self.temp_c.insert(&current_account_id, &temp_c);
     }
+    /*
+    //This method is experimental
+    fn set_payment_account_id(&mut self, payment_account_id: AccountId) {
+        let account_id = env::signer_account_id();
 
+        let log_message = format!("New status {}", &payment_account_id);
+        env::log(log_message.as_bytes());
+        self.payment_account_id.insert(&account_id, &message);
+    }
+    */
+
+    //In each arrival the temp_c is saved
+    //Looking if we can define a range of temp_c
     pub fn new_arrival(&mut self, temp_c: f32 ){
+
+        assert!(
+            self.initialized, //check if the contract is initialized
+            "Contract is not initialized"
+        );
         assert!(
             self.val < 4, //Current location vs Destiny location
-            "Truck come to it's last destiny, "
+            "Delivery its in the last destiny, "
         );
         self.increment();
         let account_id = env::signer_account_id();
@@ -113,8 +127,12 @@ impl ColdChain {
 
 
     pub fn withdraw(&mut self) {
-    
-         
+    /*
+        assert!(
+            self.initialized, //Current location vs Destiny location
+            "There is no payment for cold chain deliverry "
+        );
+     */    
         assert_eq!(
             self.val, //Current location
             4,
@@ -137,15 +155,18 @@ impl ColdChain {
         */
         let account_id = env::signer_account_id();
         //let account_id = env::current_account_id();
+        //let mut account_id = &self.payment_account_id;
         let amount = env::account_balance();
         let log_account = format!("Account ID {}", &account_id);
         env::log(log_account.as_bytes());
 
         let log_amount = format!("Amount {}", &amount);
         env::log(log_amount.as_bytes());
+
         self.reset();
+        self.initialized = false;
         let amount_payment: Balance = 10000000000000000000000000;
-        Promise::new(account_id).transfer(amount_payment);
+        Promise::new(self.payment_account_id.to_string()).transfer(amount_payment);
 
     }
     //Verify how much balance is in the contract
@@ -156,68 +177,19 @@ impl ColdChain {
     pub fn get_temp_c(&self, account_id: String) -> Option<f32> {
         return self.temp_c.get(&account_id);
     }
-    /*
-    Not really functional to be inside the smart contract
-    It will consume gas for doing a senseless reading
-    pub fn get_location_verbose(&self) -> Option<String>  {
-        /*0-Tepic, Nayarit (Origin)
-        1-Guadalajara, Jalisco
-        2-Aguascalientes, Aguascalientes
-        3-Leon, Guanajuato
-        4-Ciudad de México (Destiny)*/
-        match self.val {
-            // Match a single value
-            0 => env::log(b"Tepic"),
-            1 => env::log(b"Reset counter to zero"),
-            2 => env::log(b"Reset counter to zero"),
-            3 => env::log(b"Reset counter to zero"),
-            4 => env::log(b"Reset counter to zero"),
-        }
-    }
-    
-    #[payable]
-    pub fn set_status(&mut self, message: String) {
-        let account_id = env::signer_account_id();
 
-        let log_message = format!("New status {}", &message);
-        env::log(log_message.as_bytes());
-        self.records.insert(&account_id, &message);
+    pub fn get_payment_account_id(&self) -> String {
+        return self.payment_account_id.to_string();
     }
 
-    pub fn get_status(&self, account_id: String) -> Option<String> {
-        return self.records.get(&account_id);
-    }
-    pub fn set_date(&mut self, date: String) {
-        let account_id = env::signer_account_id();
-        self.date.insert(&account_id, &date);
+    pub fn get_initialized(&self) -> bool {
+        return self.initialized;
     }
 
-    pub fn get_date(&self, account_id: String) -> Option<String> {
-        return self.date.get(&account_id);
-    }
-*/
+    ///This methods are just for TESTING PURPOSES, 
+    //IF YOU DONT NEED THEM YOU SHOULD COMMENT OUT 
+    //THE METHODS decrement() and reset()
 
-    ///START COUNTING METHODS
-
-    /// Increment the counter.
-    ///
-    /// Note, the parameter is "&mut self" as this function modifies state.
-    /// In the frontend (/src/main.js) this is added to the "changeMethods" array
-    /// using near-cli we can call this by:
-    ///
-    /// ```bash
-    /// near call counter.YOU.testnet increment --accountId donation.YOU.testnet
-    /// ```
-
-
-    /// Decrement (subtract from) the counter.
-    ///
-    /// In (/src/main.js) this is also added to the "changeMethods" array
-    /// using near-cli we can call this by:
-    ///
-    /// ```bash
-    /// near call counter.YOU.testnet decrement --accountId donation.YOU.testnet
-    /// ```
     pub fn decrement(&mut self) {
         // note: subtracting one like this is an easy way to accidentally overflow
         // real smart contracts will want to have safety checks
@@ -235,20 +207,6 @@ impl ColdChain {
         // Another way to log is to cast a string into bytes, hence "b" below:
         env::log(b"Reset counter to zero");
     }
-/*
-    pub fn set_date(&mut self, date: String) {
-        let account_id = env::signer_account_id();
-        self.records.insert(&account_id, &date);
-    }
-
-    pub fn get_date(&self, account_id: String) -> Option<String> {
-        return self.records.get(&account_id);
-    }
-
-    pub fn get_all_dates(&self, account_id: String) -> Option<String> {
-        return self.date.get(&account_id);
-    }
-*/
 }
 
 #[cfg(not(target_arch = "wasm32"))]
