@@ -1,7 +1,11 @@
 use crate::ColdChain;
 use near_sdk::{testing_env, VMContext};
 use near_sdk::MockedBlockchain;
-
+use near_sdk::{
+    env, ext_contract, near_bindgen, AccountId, Balance, EpochHeight, Promise, PromiseResult,
+    PublicKey, 
+};
+/*
  
 fn alice() -> AccountId {
     "alice.near".to_string()
@@ -35,7 +39,7 @@ fn get_context(input: Vec<u8>, is_view: bool) -> VMContext {
 }
  #[test]
 fn test_get_initialized(){
-    les context =get_context(vec![], false);
+    let context =get_context(vec![], false);
     testing_env!(context);
     let contract = ColdChain::get_initailized();
     assert_eq!(false,contract.get_initalized);
@@ -52,7 +56,7 @@ fn test_new_delivery(){
 
 #[test]
 fn test_new_arrival(){
-    les context =get_context(vec![], false);
+    let context =get_context(vec![], false);
     testing_env!(context);
     let contract = ColdChain::new_arrival();
     assert_eq!(false,contract.new_arrival);
@@ -68,4 +72,4 @@ fn test_new_arrival(){
 }
 
 
-
+*/

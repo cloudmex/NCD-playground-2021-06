@@ -248,7 +248,6 @@ mod tests {
         assert!(contract.new_delivery('{"temp_c": -4.0, "payment_account_id": "alan1.testnet"}'));
     }
 
-    */
     #[test]
     fn test_get_initialized(){
         let context = get_context(vec![], false);
@@ -280,6 +279,7 @@ mod tests {
         let contract = ColdChain::default();
         assert_eq!(false,contract.withdraw());
     }
+    */
 
 }
 
